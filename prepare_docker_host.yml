@@ -1,0 +1,55 @@
+---
+- name: Prepare Rocky Linux host for Docker
+  hosts: docker_hosts
+  become: true # Run tasks with sudo privileges
+  tasks:
+    - name: Update all packages to the latest version
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Install required packages for Docker
+      ansible.builtin.dnf:
+        name:
+          - dnf-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+
+    - name: Add Docker GPG key
+      ansible.builtin.rpm_key:
+        state: present
+        key: https://download.docker.com/linux/centos/gpg
+
+    - name: Add Docker repository
+      ansible.builtin.yum_repository:
+        name: docker-ce
+        description: Docker CE Repository
+        baseurl: https://download.docker.com/linux/centos/{{ ansible_distribution_major_version }}/x86_64/stable/
+        gpgcheck: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+        enabled: yes
+
+    - name: Install Docker Engine, containerd, and Docker Compose
+      ansible.builtin.dnf:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Start and enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add specified user to the docker group (optional)
+      ansible.builtin.user:
+        name: "{{ ansible_user }}" # Or a specific user, e.g., 'your_docker_user'
+        groups: docker
+        append: yes
+      when: ansible_user is defined # Only run if ansible_user is set or specify a user
