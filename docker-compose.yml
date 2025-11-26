@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   graphite-statsd:
-    image: graphiteapp/docker-graphite-statsd
+    image: graphiteapp/graphite-statsd:latest
     container_name: graphite-statsd
     restart: always
     ports:
