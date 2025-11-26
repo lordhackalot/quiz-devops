@@ -13,3 +13,4 @@ services:
 
   nodejs_app:
     build: .
+
